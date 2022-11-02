@@ -1,0 +1,31 @@
+version: "3"
+
+services:
+  web:
+    build: .
+#    volumes:
+#      - static_volume:/home/app/web/static_files
+#      - media_volume:/home/app/web/media
+    depends_on:
+      - db
+    env_file: ./.env
+    environment:
+      SQL_HOST: "db"
+    command: bash -c "cd app && python manage.py runserver 0.0.0.0:8000"
+    expose:
+      - 8000
+    ports:
+      - "8000:8000"
+  db:
+    image: postgres
+#    volumes:
+#      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      POSTGRES_USER: ${SQL_USER}
+      POSTGRES_PASSWORD: ${SQL_PASSWORD}
+      POSTGRES_DB: ${SQL_DATABASE}
+      POSTGRES_PORT: ${SQL_PORT}
+#volumes:
+#  postgres_data:
+#  static_volume:
+#  media_volume:
