@@ -46,7 +46,8 @@ INSTALLED_APPS = [
     "drf_yasg",
     "djoser",
 
-    "to_do.apps.ToDoConfig"
+    "to_do.apps.ToDoConfig",
+    "common.apps.CommonConfig",
 ]
 
 MIDDLEWARE = [
