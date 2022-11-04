@@ -15,4 +15,4 @@ class Image(models.Model):
     class Meta:
         verbose_name = "Image"
         verbose_name_plural = "Images"
-
+        abstract = True
