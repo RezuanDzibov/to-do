@@ -7,5 +7,5 @@
 bash -c "cd app && python manage.py flush --no-input"
 bash -c "cd app && python manage.py makemigrations"
 bash -c "cd app && python manage.py migrate"
-bash -c "cd app && python manage.py loaddata admin_fixture.json --app auth"
+bash -c "cd app && python manage.py loaddata admin_fixture.json --app user"
 exec "$@"

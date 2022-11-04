@@ -48,6 +48,7 @@ INSTALLED_APPS = [
 
     "to_do.apps.ToDoConfig",
     "common.apps.CommonConfig",
+    "user.apps.UserConfig",
 ]
 
 MIDDLEWARE = [
@@ -149,3 +150,5 @@ SIMPLE_JWT = {
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
+AUTH_USER_MODEL = "user.User"
