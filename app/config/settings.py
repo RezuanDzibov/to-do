@@ -46,7 +46,7 @@ INSTALLED_APPS = [
     "drf_yasg",
     "djoser",
 
-    "to_do.apps.ToDoConfig",
+    "tasks.apps.ToDoConfig",
     "common.apps.CommonConfig",
     "user.apps.UserConfig",
 ]
