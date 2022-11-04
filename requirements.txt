@@ -5,3 +5,4 @@ djoser
 drf-yasg
 python-dotenv
 djangorestframework_simplejwt
+Pillow
