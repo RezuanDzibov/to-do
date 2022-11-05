@@ -1,11 +1,11 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-from app.common.models import Image
+from common.models import Image
 
 
 class AvatarImage(Image):
-    date_uploaded = models.DateField(auto_now=True)
+    upload_date = models.DateField(auto_now_add=True)
 
     class Meta:
         verbose_name = "Avatar"
