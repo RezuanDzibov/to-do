@@ -45,6 +45,7 @@ class Task(models.Model):
     status = models.ForeignKey(Status, on_delete=models.PROTECT)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     text = models.TextField()
+    available = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     edited_at = models.DateTimeField(auto_now=True)
 
@@ -66,4 +67,5 @@ class TaskCompletion(models.Model):
         verbose_name_plural = "Task Completions"
 
     def __str__(self) -> str:
-        return f"{self.user.username} {self.task[:20]}"
+
+        return f"{self.task.title[:20]} by {self.user.first_name} {self.user.last_name}"
