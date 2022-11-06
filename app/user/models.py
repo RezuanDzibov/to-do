@@ -1,19 +1,11 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-from common.models import Image
-
-
-class AvatarImage(Image):
-    upload_date = models.DateField(auto_now_add=True)
-
-    class Meta:
-        verbose_name = "Avatar"
-        verbose_name_plural = "Avatars"
+from common.models import get_upload_path
 
 
 class User(AbstractUser):
-    avatar = models.OneToOneField(AvatarImage, on_delete=models.DO_NOTHING, null=True)
+    avatar = models.ImageField(upload_to=get_upload_path, blank=True, null=True)
 
     class Meta:
         verbose_name = "User"
