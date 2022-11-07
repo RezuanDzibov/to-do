@@ -6,3 +6,6 @@ drf-yasg
 python-dotenv
 djangorestframework_simplejwt
 Pillow
+pytest
+factory_boy
+pytest_factoryboy
