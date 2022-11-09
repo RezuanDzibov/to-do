@@ -152,3 +152,9 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 AUTH_USER_MODEL = "user.User"
+
+ADMIN_FIXTURE_USERNAME = os.environ.get("ADMIN_FIXTURE_USERNAME", "admin")
+ADMIN_FIXTURE_EMAIL = os.environ.get("ADMIN_FIXTURE_EMAIL", "admin@gmail,com")
+ADMIN_FIXTURE_PASSWORD = os.environ.get("ADMIN_FIXTURE_PASSWORD", "admin")
+ADMIN_FIXTURE_FIRST_NAME = os.environ.get("ADMIN_FIXTURE_FIRST_NAME", "Admin")
+ADMIN_FIXTURE_LAST_NAME = os.environ.get("ADMIN_FIXTURE_LAST_NAME", "Admin")
