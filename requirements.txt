@@ -9,3 +9,4 @@ Pillow
 pytest
 factory_boy
 pytest_factoryboy
+pytest-django
