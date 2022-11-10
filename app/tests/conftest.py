@@ -1,4 +1,6 @@
 import pytest
+
+from _pytest.fixtures import SubRequest
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from rest_framework.test import APIClient
@@ -61,3 +63,13 @@ def auth_test_client(admin_user: User) -> APIClient:
 @pytest.fixture(scope="function")
 def test_client() -> APIClient:
     return APIClient()
+
+
+@pytest.fixture(scope="function")
+def task(request: SubRequest, admin_user: User, built_task: models.Task) -> models.Task:
+    if hasattr(request, "param"):
+        for key, value in request.param.items():
+            setattr(built_task, key, value)
+    built_task.user = admin_user
+    built_task.save()
+    return built_task
