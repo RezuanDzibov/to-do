@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
 
 from tasks import models
 from tasks import serializers
@@ -12,4 +13,9 @@ def create_task(user: User, data: dict) -> models.Task:
     task_data = task_serializer.validated_data
     task = models.Task(user=user, **task_data)
     task.save()
+    return task
+
+
+def get_task(id_: int) -> models.Task:
+    task = get_object_or_404(models.Task, id=id_)
     return task
