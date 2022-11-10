@@ -16,3 +16,12 @@ class TaskCreateSerializerOut(serializers.ModelSerializer):
     class Meta:
         model = models.Task
         fields = ["id", "category", "status", "user", "text", "available", "created_at"]
+
+
+class TaskRetrieveSerializer(serializers.ModelSerializer):
+    category = serializers.CharField(source="category.name")
+    status = serializers.CharField(source="status.name")
+
+    class Meta:
+        model = models.Task
+        fields = ["id", "category", "status", "user", "text", "available", "created_at", "edited_at"]
