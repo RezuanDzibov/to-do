@@ -1,10 +1,14 @@
 import random
+from typing import List
 
 import pytest
+from django.contrib.auth import get_user_model
 from django.urls import reverse
 from rest_framework.test import APIClient
 
 from tasks import models, serializers
+
+User = get_user_model()
 
 
 class TestCreateTask:
@@ -52,3 +56,61 @@ class TestTaskRetrieve:
         response = client.get(reverse("task-retrieve", kwargs={"task_id": task.id}))
         assert response.status_code == 403
 
+
+class TestTaskList:
+    def test_success(self, auth_test_client: APIClient, tasks: List[models.Task]):
+        response = auth_test_client.get(reverse("task-list"))
+        assert response.status_code == 200
+        assert len(response.data) == len(tasks)
+
+    def test_success_not_auth_user(self, test_client: APIClient, tasks: List[models.Task]):
+        response = test_client.get(reverse("task-list"))
+        assert response.status_code == 200
+        assert len(response.data) == len(tasks)
+
+    def test_available_is_true(self, auth_test_client: APIClient, tasks: List[models.Task]):
+        available_tasks = list(filter(lambda obj: obj.available is True, tasks))
+        response = auth_test_client.get(f"{reverse('task-list')}?available=true")
+        assert response.status_code == 200
+        assert len(response.data) == len(available_tasks)
+        assert all(task["available"] for task in response.data)
+
+    def test_available_is_false(self, auth_test_client: APIClient, tasks: List[models.Task]):
+        available_tasks = list(filter(lambda obj: obj.available is False, tasks))
+        response = auth_test_client.get(f"{reverse('task-list')}?available=false")
+        assert response.status_code == 200
+        assert len(response.data) == len(available_tasks)
+        assert not all(task["available"] for task in response.data)
+
+    def test_category_filter(
+            self,
+            auth_test_client: APIClient,
+            admin_user: User,
+            tasks: List[models.Task],
+            built_task: models.Task
+    ):
+        built_task.category = models.Category.objects.create(name="category")
+        built_task.user = admin_user
+        built_task.save()
+        response = auth_test_client.get(f"{reverse('task-list')}?category__name=category")
+        assert response.status_code == 200
+        assert len(response.data) == 1
+
+    def test_status_filter(
+            self,
+            auth_test_client: APIClient,
+            admin_user: User,
+            tasks: List[models.Task],
+            built_task: models.Task
+    ):
+        built_task.status = models.Status.objects.create(name="status")
+        built_task.user = admin_user
+        built_task.save()
+        response = auth_test_client.get(f"{reverse('task-list')}?status__name=status")
+        assert response.status_code == 200
+        assert len(response.data) == 1
+
+    def test_not_exist(self, auth_test_client: APIClient):
+        response = auth_test_client.get(reverse("task-list"))
+        assert response.status_code == 200
+        assert len(response.data) == 0
