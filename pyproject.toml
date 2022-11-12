@@ -20,6 +20,7 @@ factory-boy = "^3.2.1"
 pytest-factoryboy = "^2.5.0"
 pytest-django = "^4.5.2"
 djoser = "^2.1.0"
+django-filter = "^22.1"
 
 
 [build-system]
