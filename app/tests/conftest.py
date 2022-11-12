@@ -1,3 +1,8 @@
+from functools import partial
+from random import randint
+from typing import List
+
+import faker
 import pytest
 
 from _pytest.fixtures import SubRequest
@@ -73,3 +78,17 @@ def task(request: SubRequest, admin_user: User, built_task: models.Task) -> mode
     built_task.user = admin_user
     built_task.save()
     return built_task
+
+
+@pytest.fixture(scope="function")
+def tasks(request: SubRequest, admin_user: User, category: models.Category, status: models.Status) -> List[models.Task]:
+    fun = partial(factories.TaskFactory.build_batch, user=admin_user, category=category, status=status)
+    if hasattr(request, "param") and request.param is int and request.param > 0:
+        tasks = fun(request.param)
+    else:
+        tasks = fun(randint(1, 10))
+    for task in tasks:
+        task.available = faker.Faker().pybool()
+    models.Task.objects.bulk_create(tasks)
+    return tasks
+
