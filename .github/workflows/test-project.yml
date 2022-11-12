@@ -1,0 +1,64 @@
+name: Test project
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+env:
+  SECRET_KEY: ${{ secrets.SECRET_KEY }}
+  DEBUG: ${{ secrets.DEBUG }}
+  ALLOWED_HOSTS: "127.0.0.1"
+  SQL_ENGINE: "django.db.backends.postgresql_psycopg2"
+  SQL_USER: "todo"
+  SQL_PASSWORD: "postgres"
+  SQL_DATABASE: "todo"
+  SQL_HOST: "localhost"
+  SQL_PORT: "5432"
+  ADMIN_FIXTURE_USERNAME: "admin"
+  ADMIN_FIXTURE_EMAIL: "admin@gmail.com"
+  ADMIN_FIXTURE_PASSWORD: "admin"
+  ADMIN_FIXTURE_FIRST_NAME: "Admin"
+  ADMIN_FIXTURE_LAST_NAME: "Admino"
+  LANGUAGE_CODE: "en-us"
+  TIME_ZONE: "UTC"
+  USE_I18N: "True"
+  USE_TZ: "True"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    services:
+      db:
+        image: postgres:latest
+        env:
+          POSTGRES_USER: ${{ env.SQL_USER }}
+          POSTGRES_PASSWORD: ${{ env.SQL_PASSWORD }}
+          POSTGRES_DB: ${{ env.SQL_DATABASE }}
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.10"
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r src/requirements.txt
+    - name: Lint with flake8
+      run: |
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    - name: Test with pytest
+      run: |
+        pytest
