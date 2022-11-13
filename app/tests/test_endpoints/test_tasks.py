@@ -114,3 +114,35 @@ class TestTaskList:
         response = auth_test_client.get(reverse("task-list"))
         assert response.status_code == 200
         assert len(response.data) == 0
+
+
+class TestDeleteTask:
+    def test_success(self, auth_test_client: APIClient, task: models.Task):
+        response = auth_test_client.delete(reverse("task-delete", kwargs={"task_id": task.id}))
+        assert response.status_code == 204
+        with pytest.raises(models.Task.DoesNotExist):
+            models.Task.objects.get(id=task.id)
+
+    def test_success_with_multiple_tasks(self, auth_test_client: APIClient, tasks: List[models.Task]):
+        task = random.choice(tasks)
+        response = auth_test_client.delete(reverse("task-delete", kwargs={"task_id": task.id}))
+        assert response.status_code == 204
+        with pytest.raises(models.Task.DoesNotExist):
+            models.Task.objects.get(id=task.id)
+
+    def test_with_not_author(self, user_test_client: APIClient, task: models.Task):
+        response = user_test_client.delete(reverse("task-delete", kwargs={"task_id": task.id}))
+        assert response.status_code == 404
+
+    @pytest.mark.parametrize("tasks", [7], indirect=True)
+    def test_not_exist_task(self, auth_test_client: APIClient, tasks: List[models.Task]):
+        response = auth_test_client.delete(reverse("task-delete", kwargs={"task_id": 100}))
+        assert response.status_code == 404
+
+    def test_not_exist_task_without_tasks(self, auth_test_client: APIClient):
+        response = auth_test_client.delete(reverse("task-delete", kwargs={"task_id": 1}))
+        assert response.status_code == 404
+
+    def test_without_user(self, test_client: APIClient, tasks: List[models.Task]):
+        response = test_client.delete(reverse("task-delete", kwargs={"task_id": random.choice(tasks).id}))
+        assert response.status_code == 401
