@@ -1,8 +1,9 @@
 import random
+from typing import List
 
 import pytest
 from django.contrib.auth import get_user_model
-from django.http import response
+from django.http import response, Http404
 from rest_framework import exceptions
 
 from tasks import models, services, serializers
@@ -40,3 +41,29 @@ class TestGetTask:
     def test_not_exist(self, db):
         with pytest.raises(response.Http404):
             services.get_task(id_=random.randint(1, 10))
+
+
+class TestDeleteTask:
+    def test_success(self, admin_user: User, task: models.Task):
+        services.delete_task(user=admin_user, id_=task.id)
+        with pytest.raises(models.Task.DoesNotExist):
+            models.Task.objects.get(id=task.id)
+
+    def test_success_with_multiple_tasks(self, admin_user: User, tasks: List[models.Task]):
+        task = random.choice(tasks)
+        services.delete_task(user=admin_user, id_=task.id)
+        with pytest.raises(models.Task.DoesNotExist):
+            models.Task.objects.get(id=task.id)
+
+    def test_with_not_author(self, user_and_its_password: dict, task: models.Task):
+        with pytest.raises(Http404):
+            services.delete_task(user=user_and_its_password["user"], id_=task.id)
+
+    @pytest.mark.parametrize("tasks", [7], indirect=True)
+    def test_not_exist_task(self, admin_user: User, tasks: List[models.Task]):
+        with pytest.raises(Http404):
+            services.delete_task(user=admin_user, id_=100)
+
+    def test_not_exist_task_without_tasks(self, admin_user: User):
+        with pytest.raises(Http404):
+            services.delete_task(user=admin_user, id_=1)
