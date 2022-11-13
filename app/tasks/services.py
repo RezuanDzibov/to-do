@@ -19,3 +19,8 @@ def create_task(user: User, data: dict) -> models.Task:
 def get_task(id_: int) -> models.Task:
     task = get_object_or_404(models.Task, id=id_)
     return task
+
+
+def delete_task(user: User, id_: int) -> None:
+    task = get_object_or_404(models.Task, id=id_, user=user)
+    task.delete()
