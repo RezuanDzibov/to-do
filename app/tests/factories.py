@@ -1,9 +1,12 @@
 import factory
+from django.contrib.auth import get_user_model
+from django.utils.text import slugify
 from faker import Faker
 
 from tasks import models
 
 fake = Faker()
+User = get_user_model()
 
 
 class CategoryFactory(factory.django.DjangoModelFactory):
@@ -27,3 +30,16 @@ class TaskFactory(factory.django.DjangoModelFactory):
     title = factory.LazyAttribute(lambda obj: fake.color_name())
     text = factory.LazyAttribute(lambda obj: fake.text())
     available = factory.LazyAttribute(lambda obj: fake.pybool())
+
+
+class UserFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = User
+
+    username = factory.LazyAttribute(lambda obj: slugify(fake.color_name()))
+    first_name = factory.LazyAttribute(lambda obj: fake.first_name())
+    last_name = factory.LazyAttribute(lambda obj: fake.last_name())
+    email = factory.LazyAttribute(lambda obj: fake.email())
+    is_staff = False
+    is_active = True
+    password = factory.LazyAttribute(lambda obj: fake.password())
