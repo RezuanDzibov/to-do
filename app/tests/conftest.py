@@ -92,3 +92,25 @@ def tasks(request: SubRequest, admin_user: User, category: models.Category, stat
     models.Task.objects.bulk_create(tasks)
     return tasks
 
+
+@pytest.fixture(scope="function")
+def user_and_its_password(request: SubRequest, db) -> User:
+    user = factories.UserFactory.build()
+    if hasattr(request, "param") and request.param is dict:
+        for key, value in request.param.items():
+            setattr(user, key, value)
+    to_return = {"password": user.password}
+    user = User.objects.create_user(username=user.username, password=user.password, email=user.email)
+    to_return["user"] = user
+    return to_return
+
+
+@pytest.fixture(scope="function")
+def user_test_client(user_and_its_password) -> APIClient:
+    url = reverse("jwt-create")
+    data = {"username": user_and_its_password["user"].username, "password": user_and_its_password["password"]}
+    response = APIClient().post(url, data)
+    access_token = response.data["access"]
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION="JWT " + access_token)
+    return client
