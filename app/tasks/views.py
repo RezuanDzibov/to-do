@@ -1,8 +1,7 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import views, status, permissions
+from rest_framework import views, status, permissions, generics
 from rest_framework.exceptions import PermissionDenied
-from rest_framework.generics import ListAPIView
 from rest_framework.request import HttpRequest
 from rest_framework.response import Response
 
@@ -32,9 +31,18 @@ class TaskRetrieve(views.APIView):
         return Response(data=serializers.TaskRetrieveSerializer(task).data, status=status.HTTP_200_OK)
 
 
-class TaskList(ListAPIView):
+class TaskList(generics.ListAPIView):
     queryset = models.Task.objects.all()
     serializer_class = serializers.TaskListSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TaskFilter
     permission_classes = [permissions.AllowAny]
+
+
+class TaskDelete(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    @swagger_auto_schema(responses={200: None})
+    def delete(self, request: HttpRequest, task_id: int) -> Response:
+        services.delete_task(user=request.user, id_=task_id)
+        return Response(status=status.HTTP_204_NO_CONTENT)
