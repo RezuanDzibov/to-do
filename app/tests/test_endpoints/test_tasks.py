@@ -146,3 +146,52 @@ class TestDeleteTask:
     def test_without_user(self, test_client: APIClient, tasks: List[models.Task]):
         response = test_client.delete(reverse("task-delete", kwargs={"task_id": random.choice(tasks).id}))
         assert response.status_code == 401
+
+
+class TestTaskUpdate:
+    def test_success(self, auth_test_client: APIClient, task: models.Task):
+        data_for_update = {"title": "another", "available": False}
+        response = auth_test_client.put(reverse("task-update", kwargs={"task_id": task.id}), data_for_update)
+        assert response.status_code == 200
+        assert response.data["title"] == data_for_update["title"] and response.data["available"] == data_for_update["available"]
+
+    def test_with_multiple_tasks(self, auth_test_client: APIClient, tasks: List[models.Task]):
+        data_for_update = {"title": "another", "available": False}
+        response = auth_test_client.put(
+            reverse("task-update", kwargs={"task_id": random.choice(tasks).id}),
+            data_for_update,
+        )
+        assert response.status_code == 200
+        assert response.data["title"] == data_for_update["title"] and response.data["available"] == data_for_update["available"]
+
+    def test_invalid_data(self, auth_test_client, task: models.Task):
+        data_for_update = {"some": "another", "another_some": "some"}
+        response = auth_test_client.put(
+            reverse("task-update", kwargs={"task_id": task.id}),
+            data_for_update,
+        )
+        assert response.status_code == 400
+
+    def test_not_author(self, user_test_client: APIClient, task: models.Task):
+        data_for_update = {"title": "another", "available": False}
+        response = user_test_client.put(
+            reverse("task-update", kwargs={"task_id": task.id}),
+            data_for_update,
+        )
+        assert response.status_code == 403
+
+    def test_not_exist_task(self, auth_test_client: APIClient):
+        data_for_update = {"title": "another", "available": False}
+        response = auth_test_client.put(
+            reverse("task-update", kwargs={"task_id": random.randint(1, 100)}),
+            data_for_update,
+        )
+        assert response.status_code == 404
+
+    def test_without_auth(self, test_client: APIClient, tasks: List[models.Task]):
+        data_for_update = {"title": "another", "available": False}
+        response = test_client.put(
+            reverse("task-update", kwargs={"task_id": random.randint(1, 100)}),
+            data_for_update,
+        )
+        assert response.status_code == 401
