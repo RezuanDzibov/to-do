@@ -46,3 +46,12 @@ class TaskDelete(views.APIView):
     def delete(self, request: HttpRequest, task_id: int) -> Response:
         services.delete_task(user=request.user, id_=task_id)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class TaskUpdate(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    @swagger_auto_schema(responses={200: serializers.TaskRetrieveSerializer()})
+    def put(self, request: HttpRequest, task_id: int) -> Response:
+        task = services.update_task(user=request.user, id_=task_id, data=request.data.copy().dict())
+        return Response(data=serializers.TaskRetrieveSerializer(task).data, status=status.HTTP_200_OK)
