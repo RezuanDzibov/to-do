@@ -114,3 +114,18 @@ def user_test_client(user_and_its_password) -> APIClient:
     client = APIClient()
     client.credentials(HTTP_AUTHORIZATION="JWT " + access_token)
     return client
+
+
+@pytest.fixture(scope="function")
+def built_category() -> models.Category:
+    category = factories.CategoryFactory.build()
+    return category
+
+
+@pytest.fixture(scope="function")
+def categories(request: SubRequest, db) -> List[models.Category]:
+    if hasattr(request, "param") and request.param is int and request.param > 0:
+        categories = factories.CategoryFactory.build_batch(request.param)
+    else:
+        categories = factories.CategoryFactory.build_batch(randint(1, 10))
+    return categories
