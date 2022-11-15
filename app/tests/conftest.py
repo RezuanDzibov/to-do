@@ -125,7 +125,7 @@ def built_category() -> models.Category:
 @pytest.fixture(scope="function")
 def categories(request: SubRequest, db) -> List[models.Category]:
     if hasattr(request, "param") and request.param is int and request.param > 0:
-        categories = factories.CategoryFactory.build_batch(request.param)
+        categories = factories.CategoryFactory.create_batch(request.param)
     else:
-        categories = factories.CategoryFactory.build_batch(randint(1, 10))
+        categories = factories.CategoryFactory.create_batch(randint(1, 10))
     return categories
