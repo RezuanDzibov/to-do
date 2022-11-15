@@ -12,23 +12,23 @@ User = get_user_model()
 
 
 class TestCreateTask:
-    def test_successful(self, auth_test_client: APIClient, built_task: models.Task):
+    def test_successful(self, admin_test_client, built_task: models.Task):
         built_task_serializer = serializers.TaskCreateSerializerIn(built_task)
-        response = auth_test_client.post(reverse("task-create"), built_task_serializer.data)
+        response = admin_test_client.post(reverse("task-create"), built_task_serializer.data)
         assert response.status_code == 201
         assert response.data["id"]
 
-    def test_unsuccessful(self, auth_test_client: APIClient, built_task: models.Task):
+    def test_unsuccessful(self, admin_test_client, built_task: models.Task):
         built_task.title = "a" * 300
         built_task.available = "okoso"
         built_task_serializer = serializers.TaskCreateSerializerIn(built_task)
-        response = auth_test_client.post(reverse("task-create"), built_task_serializer.data)
+        response = admin_test_client.post(reverse("task-create"), built_task_serializer.data)
         assert response.status_code == 400
 
-    def test_not_exists_related_id(self, auth_test_client: APIClient, built_task: models.Task):
+    def test_not_exists_related_id(self, admin_test_client, built_task: models.Task):
         built_task.category = models.Category(id=8)
         built_task_serializer = serializers.TaskCreateSerializerIn(built_task)
-        response = auth_test_client.post(reverse("task-create"), built_task_serializer.data)
+        response = admin_test_client.post(reverse("task-create"), built_task_serializer.data)
         assert response.status_code == 400
 
     def test_not_auth(self, test_client: APIClient, built_task: models.Task):
@@ -38,12 +38,12 @@ class TestCreateTask:
 
 
 class TestTaskRetrieve:
-    def test_success(self, task: models.Task, auth_test_client: APIClient):
-        response = auth_test_client.get(reverse("task-retrieve", kwargs={"task_id": task.id}))
+    def test_success(self, task: models.Task, admin_test_client):
+        response = admin_test_client.get(reverse("task-retrieve", kwargs={"task_id": task.id}))
         assert response.status_code == 200
 
-    def test_not_exist(self, auth_test_client: APIClient):
-        response = auth_test_client.get(reverse("task-retrieve", kwargs={"task_id": random.randint(1, 10)}))
+    def test_not_exist(self, admin_test_client):
+        response = admin_test_client.get(reverse("task-retrieve", kwargs={"task_id": random.randint(1, 10)}))
         assert response.status_code == 404
 
     @pytest.mark.parametrize("task", [{"available": True}], indirect=True)
@@ -58,8 +58,8 @@ class TestTaskRetrieve:
 
 
 class TestTaskList:
-    def test_success(self, auth_test_client: APIClient, tasks: List[models.Task]):
-        response = auth_test_client.get(reverse("task-list"))
+    def test_success(self, admin_test_client, tasks: List[models.Task]):
+        response = admin_test_client.get(reverse("task-list"))
         assert response.status_code == 200
         assert len(response.data) == len(tasks)
 
@@ -68,23 +68,23 @@ class TestTaskList:
         assert response.status_code == 200
         assert len(response.data) == len(tasks)
 
-    def test_available_is_true(self, auth_test_client: APIClient, tasks: List[models.Task]):
+    def test_available_is_true(self, admin_test_client, tasks: List[models.Task]):
         available_tasks = list(filter(lambda obj: obj.available is True, tasks))
-        response = auth_test_client.get(f"{reverse('task-list')}?available=true")
+        response = admin_test_client.get(f"{reverse('task-list')}?available=true")
         assert response.status_code == 200
         assert len(response.data) == len(available_tasks)
         assert all(task["available"] for task in response.data)
 
-    def test_available_is_false(self, auth_test_client: APIClient, tasks: List[models.Task]):
+    def test_available_is_false(self, admin_test_client, tasks: List[models.Task]):
         available_tasks = list(filter(lambda obj: obj.available is False, tasks))
-        response = auth_test_client.get(f"{reverse('task-list')}?available=false")
+        response = admin_test_client.get(f"{reverse('task-list')}?available=false")
         assert response.status_code == 200
         assert len(response.data) == len(available_tasks)
         assert not all(task["available"] for task in response.data)
 
     def test_category_filter(
             self,
-            auth_test_client: APIClient,
+            admin_test_client,
             admin_user: User,
             tasks: List[models.Task],
             built_task: models.Task
@@ -92,13 +92,13 @@ class TestTaskList:
         built_task.category = models.Category.objects.create(name="category")
         built_task.user = admin_user
         built_task.save()
-        response = auth_test_client.get(f"{reverse('task-list')}?category__name=category")
+        response = admin_test_client.get(f"{reverse('task-list')}?category__name=category")
         assert response.status_code == 200
         assert len(response.data) == 1
 
     def test_status_filter(
             self,
-            auth_test_client: APIClient,
+            admin_test_client,
             admin_user: User,
             tasks: List[models.Task],
             built_task: models.Task
@@ -106,26 +106,26 @@ class TestTaskList:
         built_task.status = models.Status.objects.create(name="status")
         built_task.user = admin_user
         built_task.save()
-        response = auth_test_client.get(f"{reverse('task-list')}?status__name=status")
+        response = admin_test_client.get(f"{reverse('task-list')}?status__name=status")
         assert response.status_code == 200
         assert len(response.data) == 1
 
-    def test_not_exist(self, auth_test_client: APIClient):
-        response = auth_test_client.get(reverse("task-list"))
+    def test_not_exist(self, admin_test_client):
+        response = admin_test_client.get(reverse("task-list"))
         assert response.status_code == 200
         assert len(response.data) == 0
 
 
 class TestDeleteTask:
-    def test_success(self, auth_test_client: APIClient, task: models.Task):
-        response = auth_test_client.delete(reverse("task-delete", kwargs={"task_id": task.id}))
+    def test_success(self, admin_test_client, task: models.Task):
+        response = admin_test_client.delete(reverse("task-delete", kwargs={"task_id": task.id}))
         assert response.status_code == 204
         with pytest.raises(models.Task.DoesNotExist):
             models.Task.objects.get(id=task.id)
 
-    def test_success_with_multiple_tasks(self, auth_test_client: APIClient, tasks: List[models.Task]):
+    def test_success_with_multiple_tasks(self, admin_test_client, tasks: List[models.Task]):
         task = random.choice(tasks)
-        response = auth_test_client.delete(reverse("task-delete", kwargs={"task_id": task.id}))
+        response = admin_test_client.delete(reverse("task-delete", kwargs={"task_id": task.id}))
         assert response.status_code == 204
         with pytest.raises(models.Task.DoesNotExist):
             models.Task.objects.get(id=task.id)
@@ -135,12 +135,12 @@ class TestDeleteTask:
         assert response.status_code == 404
 
     @pytest.mark.parametrize("tasks", [7], indirect=True)
-    def test_not_exist_task(self, auth_test_client: APIClient, tasks: List[models.Task]):
-        response = auth_test_client.delete(reverse("task-delete", kwargs={"task_id": 100}))
+    def test_not_exist_task(self, admin_test_client, tasks: List[models.Task]):
+        response = admin_test_client.delete(reverse("task-delete", kwargs={"task_id": 100}))
         assert response.status_code == 404
 
-    def test_not_exist_task_without_tasks(self, auth_test_client: APIClient):
-        response = auth_test_client.delete(reverse("task-delete", kwargs={"task_id": 1}))
+    def test_not_exist_task_without_tasks(self, admin_test_client):
+        response = admin_test_client.delete(reverse("task-delete", kwargs={"task_id": 1}))
         assert response.status_code == 404
 
     def test_without_user(self, test_client: APIClient, tasks: List[models.Task]):
@@ -149,24 +149,24 @@ class TestDeleteTask:
 
 
 class TestTaskUpdate:
-    def test_success(self, auth_test_client: APIClient, task: models.Task):
+    def test_success(self, admin_test_client, task: models.Task):
         data_for_update = {"title": "another", "available": False}
-        response = auth_test_client.put(reverse("task-update", kwargs={"task_id": task.id}), data_for_update)
+        response = admin_test_client.put(reverse("task-update", kwargs={"task_id": task.id}), data_for_update)
         assert response.status_code == 200
         assert response.data["title"] == data_for_update["title"] and response.data["available"] == data_for_update["available"]
 
-    def test_with_multiple_tasks(self, auth_test_client: APIClient, tasks: List[models.Task]):
+    def test_with_multiple_tasks(self, admin_test_client, tasks: List[models.Task]):
         data_for_update = {"title": "another", "available": False}
-        response = auth_test_client.put(
+        response = admin_test_client.put(
             reverse("task-update", kwargs={"task_id": random.choice(tasks).id}),
             data_for_update,
         )
         assert response.status_code == 200
         assert response.data["title"] == data_for_update["title"] and response.data["available"] == data_for_update["available"]
 
-    def test_invalid_data(self, auth_test_client, task: models.Task):
+    def test_invalid_data(self, admin_test_client, task: models.Task):
         data_for_update = {"some": "another", "another_some": "some"}
-        response = auth_test_client.put(
+        response = admin_test_client.put(
             reverse("task-update", kwargs={"task_id": task.id}),
             data_for_update,
         )
@@ -180,9 +180,9 @@ class TestTaskUpdate:
         )
         assert response.status_code == 403
 
-    def test_not_exist_task(self, auth_test_client: APIClient):
+    def test_not_exist_task(self, admin_test_client):
         data_for_update = {"title": "another", "available": False}
-        response = auth_test_client.put(
+        response = admin_test_client.put(
             reverse("task-update", kwargs={"task_id": random.randint(1, 100)}),
             data_for_update,
         )
@@ -194,4 +194,31 @@ class TestTaskUpdate:
             reverse("task-update", kwargs={"task_id": random.randint(1, 100)}),
             data_for_update,
         )
+        assert response.status_code == 401
+
+
+class TestCreateCategory:
+    def test_success(self, admin_test_client: APIClient, built_category: models.Category):
+        response = admin_test_client.post(reverse("category-list"), {"name": built_category.name})
+        assert response.status_code == 201
+
+    def test_exist_category_in_db(
+            self,
+            admin_test_client: APIClient,
+            category: models.Category,
+            built_category: models.Category
+    ):
+        response = admin_test_client.post(reverse("category-list"), {"name": built_category.name})
+        assert response.status_code == 201
+
+    def test_with_incorrect_data(self, admin_test_client: APIClient):
+        response = admin_test_client.post(reverse("category-list"), {"field": "data"})
+        assert response.status_code == 400
+
+    def test_not_staff_user(self, user_test_client: APIClient, built_category: models.Category):
+        response = user_test_client.post(reverse("category-list"), {"name": built_category.name})
+        assert response.status_code == 403
+
+    def test_not_auth_user(self, test_client: APIClient, built_category: models.Category):
+        response = test_client.post(reverse("category-list"), {"name": built_category.name})
         assert response.status_code == 401
