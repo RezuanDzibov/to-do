@@ -222,3 +222,31 @@ class TestCreateCategory:
     def test_not_auth_user(self, test_client: APIClient, built_category: models.Category):
         response = test_client.post(reverse("category-list"), {"name": built_category.name})
         assert response.status_code == 401
+
+
+class TestCategoryRetrieve:
+    def test_success(self, admin_test_client: APIClient, categories: List[models.Category]):
+        category = random.choice(categories)
+        response = admin_test_client.get(reverse("category-detail", args=[category.id]))
+        assert response.status_code == 200
+        assert response.data["id"] == category.id
+
+    def test_with_user(self, user_test_client: APIClient, categories: List[models.Category]):
+        category = random.choice(categories)
+        response = user_test_client.get(reverse("category-detail", args=[category.id]))
+        assert response.status_code == 200
+        assert response.data["id"] == category.id
+
+    def test_not_auth_client(self, test_client: APIClient, categories: List[models.Category]):
+        category = random.choice(categories)
+        response = test_client.get(reverse("category-detail", args=[category.id]))
+        assert response.status_code == 200
+        assert response.data["id"] == category.id
+
+    def test_not_exist_category(self, admin_test_client: APIClient, categories: List[models.Category]):
+        response = admin_test_client.get(reverse("category-detail", args=[len(categories) + 1]))
+        assert response.status_code == 404
+
+    def test_not_exists_any_category(self, admin_test_client: APIClient):
+        response = admin_test_client.get(reverse("category-detail", args=[1]))
+        assert response.status_code == 404
