@@ -55,7 +55,7 @@ def built_task(category: models.Category, status: models.Status) -> models.Task:
 
 
 @pytest.fixture(scope="function")
-def auth_test_client(admin_user: User) -> APIClient:
+def admin_test_client(admin_user: User) -> APIClient:
     url = reverse("jwt-create")
     data = {"username": admin_user.username, "password": settings.ADMIN_FIXTURE_PASSWORD}
     response = APIClient().post(url, data)
