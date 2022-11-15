@@ -2,10 +2,12 @@ from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import views, status, permissions, generics
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.request import HttpRequest
 from rest_framework.response import Response
+from rest_framework.viewsets import ModelViewSet
 
-from common.permissions import IsActive
+from common.permissions import IsActive, IsStaffOrReadOnly
 from tasks import serializers, services, models
 from tasks.filters import TaskFilter
 
@@ -55,3 +57,11 @@ class TaskUpdate(views.APIView):
     def put(self, request: HttpRequest, task_id: int) -> Response:
         task = services.update_task(user=request.user, id_=task_id, data=request.data.copy().dict())
         return Response(data=serializers.TaskRetrieveSerializer(task).data, status=status.HTTP_200_OK)
+
+
+class CategoryViewSet(ModelViewSet):
+    queryset = models.Category.objects.all()
+    filter_backends = (DjangoFilterBackend,)
+    serializer_class = serializers.CategorySerializer
+    pagination_class = PageNumberPagination
+    permission_classes = [IsStaffOrReadOnly]
