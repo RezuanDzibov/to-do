@@ -5,6 +5,7 @@ from tasks import views
 
 router = DefaultRouter()
 router.register("categories", views.CategoryViewSet, basename="category")
+router.register("statuses", views.StatusViewSet, basename="status")
 
 urlpatterns = [
     path("list/", views.TaskList.as_view(), name="task-list"),
