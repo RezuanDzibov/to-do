@@ -129,3 +129,18 @@ def categories(request: SubRequest, db) -> List[models.Category]:
     else:
         categories = factories.CategoryFactory.create_batch(randint(1, 10))
     return categories
+
+
+@pytest.fixture(scope="function")
+def built_status() -> models.Status:
+    status = factories.StatusFactory.build()
+    return status
+
+
+@pytest.fixture(scope="function")
+def statuses(request: SubRequest, db) -> List[models.Status]:
+    if hasattr(request, "param") and request.param is int and request.param > 0:
+        statuses = factories.StatusFactory.create_batch(request.param)
+    else:
+        statuses = factories.StatusFactory.create_batch(randint(1, 10))
+    return statuses
