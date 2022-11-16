@@ -277,3 +277,39 @@ class TestCategoryDelete:
     def test_not_exists_any_category(self, admin_test_client: APIClient):
         response = admin_test_client.delete(reverse("category-detail", args=[1]))
         assert response.status_code == 404
+
+
+class TestCategoryUpdate:
+    def test_success(self, admin_test_client: APIClient, categories: List[models.Category]):
+        data_for_update = {"name": "name"}
+        category = random.choice(categories)
+        response = admin_test_client.put(reverse("category-detail", args=[category.id]), data_for_update)
+        assert response.status_code == 200
+
+    def test_with_invalid_data(self, admin_test_client: APIClient, categories: List[models.Category]):
+        data_for_update = {"field": "value"}
+        category = random.choice(categories)
+        response = admin_test_client.put(reverse("category-detail", args=[category.id]), data_for_update)
+        assert response.status_code == 400
+
+    def test_with_user_client(self, user_test_client: APIClient, categories: List[models.Category]):
+        data_for_update = {"name": "name"}
+        category = random.choice(categories)
+        response = user_test_client.put(reverse("category-detail", args=[category.id]), data_for_update)
+        assert response.status_code == 403
+
+    def test_not_auth_client(self, test_client: APIClient, categories: List[models.Category]):
+        data_for_update = {"name": "name"}
+        category = random.choice(categories)
+        response = test_client.put(reverse("category-detail", args=[category.id]), data_for_update)
+        assert response.status_code == 401
+
+    def test_not_exist_category(self, admin_test_client: APIClient, categories: List[models.Category]):
+        data_for_update = {"name": "name"}
+        response = admin_test_client.put(reverse("category-detail", args=[len(categories) + 1]), data_for_update)
+        assert response.status_code == 404
+
+    def test_not_exists_any_category(self, admin_test_client: APIClient):
+        data_for_update = {"name": "name"}
+        response = admin_test_client.put(reverse("category-detail", args=[1]), data_for_update)
+        assert response.status_code == 404
