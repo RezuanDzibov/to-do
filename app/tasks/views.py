@@ -65,4 +65,14 @@ class CategoryViewSet(ModelViewSet):
     serializer_class = serializers.CategorySerializer
     pagination_class = PageNumberPagination
     permission_classes = [IsStaffOrReadOnly]
-    http_method_names = ["get", "post", "head", "put"]
+    http_method_names = ["get", "post", "head", "put", "delete"]
+
+
+class StatusViewSet(ModelViewSet):
+    queryset = models.Status.objects.all()
+    filter_backends = (DjangoFilterBackend,)
+    serializer_class = serializers.StatusSerializer
+    pagination_class = PageNumberPagination
+    permission_classes = [IsStaffOrReadOnly]
+    http_method_names = ["get", "post", "head", "put", "delete"]
+
