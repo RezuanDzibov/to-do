@@ -313,3 +313,121 @@ class TestCategoryUpdate:
         data_for_update = {"name": "name"}
         response = admin_test_client.put(reverse("category-detail", args=[1]), data_for_update)
         assert response.status_code == 404
+
+
+class TestCreateStatus:
+    def test_success(self, admin_test_client: APIClient, built_status: models.Status):
+        response = admin_test_client.post(reverse("status-list"), {"name": built_status.name})
+        assert response.status_code == 201
+
+    def test_exist_category_in_db(
+            self,
+            admin_test_client: APIClient,
+            status: models.Status,
+            built_status: models.Status
+    ):
+        response = admin_test_client.post(reverse("status-list"), {"name": built_status.name})
+        assert response.status_code == 201
+
+    def test_with_incorrect_data(self, admin_test_client: APIClient):
+        response = admin_test_client.post(reverse("status-list"), {"field": "data"})
+        assert response.status_code == 400
+
+    def test_not_staff_user(self, user_test_client: APIClient, built_status: models.Status):
+        response = user_test_client.post(reverse("status-list"), {"name": built_status.name})
+        assert response.status_code == 403
+
+    def test_not_auth_user(self, test_client: APIClient, built_status: models.Status):
+        response = test_client.post(reverse("status-list"), {"name": built_status.name})
+        assert response.status_code == 401
+
+
+class TestStatusRetrieve:
+    def test_success(self, admin_test_client: APIClient, statuses: List[models.Status]):
+        status = random.choice(statuses)
+        response = admin_test_client.get(reverse("status-detail", args=[status.id]))
+        assert response.status_code == 200
+        assert response.data["id"] == status.id
+
+    def test_with_user_client(self, user_test_client: APIClient, statuses: List[models.Status]):
+        status = random.choice(statuses)
+        response = user_test_client.get(reverse("status-detail", args=[status.id]))
+        assert response.status_code == 200
+        assert response.data["id"] == status.id
+
+    def test_not_auth_client(self, test_client: APIClient, statuses: List[models.Status]):
+        status = random.choice(statuses)
+        response = test_client.get(reverse("status-detail", args=[status.id]))
+        assert response.status_code == 200
+        assert response.data["id"] == status.id
+
+    def test_not_exist_status(self, admin_test_client: APIClient, statuses: List[models.Status]):
+        response = admin_test_client.get(reverse("status-detail", args=[len(statuses) + 1]))
+        assert response.status_code == 404
+
+    def test_not_exists_any_status(self, admin_test_client: APIClient):
+        response = admin_test_client.get(reverse("status-detail", args=[1]))
+        assert response.status_code == 404
+
+
+class TestStatusDelete:
+    def test_success(self, admin_test_client: APIClient, statuses: List[models.Status]):
+        status = random.choice(statuses)
+        response = admin_test_client.delete(reverse("status-detail", args=[status.id]))
+        assert response.status_code == 204
+        response = admin_test_client.get(reverse("status-detail", args=[status.id]))
+        assert response.status_code == 404
+
+    def test_with_user_client(self, user_test_client: APIClient, statuses: List[models.Status]):
+        status = random.choice(statuses)
+        response = user_test_client.delete(reverse("status-detail", args=[status.id]))
+        assert response.status_code == 403
+
+    def test_not_auth_client(self, test_client: APIClient, statuses: List[models.Status]):
+        status = random.choice(statuses)
+        response = test_client.delete(reverse("status-detail", args=[status.id]))
+        assert response.status_code == 401
+
+    def test_not_exist_status(self, admin_test_client: APIClient, statuses: List[models.Status]):
+        response = admin_test_client.delete(reverse("status-detail", args=[len(statuses) + 1]))
+        assert response.status_code == 404
+
+    def test_not_exists_any_status(self, admin_test_client: APIClient):
+        response = admin_test_client.delete(reverse("status-detail", args=[1]))
+        assert response.status_code == 404
+
+
+class TestStatusUpdate:
+    def test_success(self, admin_test_client: APIClient, statuses: List[models.Status]):
+        data_for_update = {"name": "name"}
+        status = random.choice(statuses)
+        response = admin_test_client.put(reverse("status-detail", args=[status.id]), data_for_update)
+        assert response.status_code == 200
+
+    def test_with_invalid_data(self, admin_test_client: APIClient, statuses: List[models.Status]):
+        data_for_update = {"field": "value"}
+        status = random.choice(statuses)
+        response = admin_test_client.put(reverse("status-detail", args=[status.id]), data_for_update)
+        assert response.status_code == 400
+
+    def test_with_user_client(self, user_test_client: APIClient, statuses: List[models.Status]):
+        data_for_update = {"name": "name"}
+        status = random.choice(statuses)
+        response = user_test_client.put(reverse("status-detail", args=[status.id]), data_for_update)
+        assert response.status_code == 403
+
+    def test_not_auth_client(self, test_client: APIClient, statuses: List[models.Status]):
+        data_for_update = {"name": "name"}
+        status = random.choice(statuses)
+        response = test_client.put(reverse("status-detail", args=[status.id]), data_for_update)
+        assert response.status_code == 401
+
+    def test_not_exist_status(self, admin_test_client: APIClient, statuses: List[models.Status]):
+        data_for_update = {"name": "name"}
+        response = admin_test_client.put(reverse("status-detail", args=[len(statuses) + 1]), data_for_update)
+        assert response.status_code == 404
+
+    def test_not_exists_any_status(self, admin_test_client: APIClient):
+        data_for_update = {"name": "name"}
+        response = admin_test_client.put(reverse("status-detail", args=[1]), data_for_update)
+        assert response.status_code == 404
