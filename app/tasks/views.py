@@ -65,3 +65,4 @@ class CategoryViewSet(ModelViewSet):
     serializer_class = serializers.CategorySerializer
     pagination_class = PageNumberPagination
     permission_classes = [IsStaffOrReadOnly]
+    http_method_names = ["get", "post", "head", "put"]
