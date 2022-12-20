@@ -144,3 +144,20 @@ def statuses(request: SubRequest, db) -> List[models.Status]:
     else:
         statuses = factories.StatusFactory.create_batch(randint(1, 10))
     return statuses
+
+
+@pytest.fixture(scope="function")
+def built_task_image() -> models.TaskImage:
+    task_image = factories.TaskImageFactory.build()
+    return task_image
+
+
+@pytest.fixture(scope="function")
+def task_images(request: SubRequest, task: models.Task) -> List[models.TaskImage]:
+    fun = partial(factories.TaskImageFactory.build_batch, task=task)
+    if hasattr(request, "param") and request.param is int and request.param > 0:
+        task_images = fun(request.param)
+    else:
+        task_images = fun(randint(1, 10))
+    models.TaskImage.objects.bulk_create(task_images)
+    return task_images
