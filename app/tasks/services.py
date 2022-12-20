@@ -41,3 +41,19 @@ def update_task(user: User, id_: int, data: dict) -> models.Task:
     task = task[0]
     return task
 
+
+def create_task_image(user: User, data: dict) -> models.TaskImage:
+    task_image_serializer = serializers.TaskImageCreateSerializer(data=data)
+    task_image_serializer.is_valid(raise_exception=True)
+    task_image_data = task_image_serializer.validated_data
+    task = get_object_or_404(models.Task, id=task_image_data["task"].id)
+    if user.id != task.user.id:
+        raise exceptions.PermissionDenied()
+    task_image = models.TaskImage.objects.create(**task_image_data)
+    return task_image
+
+
+def get_task_image(task_image_id: int) -> models.TaskImage:
+    task_image = get_object_or_404(models.TaskImage, id=task_image_id)
+    return task_image
+
