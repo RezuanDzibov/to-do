@@ -3,6 +3,7 @@ from typing import List
 
 import pytest
 from django.contrib.auth import get_user_model
+from django.forms import model_to_dict
 from django.http import response, Http404
 from rest_framework import exceptions
 
@@ -62,7 +63,7 @@ class TestDeleteTask:
     @pytest.mark.parametrize("tasks", [7], indirect=True)
     def test_not_exist_task(self, admin_user: User, tasks: List[models.Task]):
         with pytest.raises(Http404):
-            services.delete_task(user=admin_user, id_=100)
+            services.delete_task(user=admin_user, id_=random.randint(100, 200))
 
     def test_not_exist_task_without_tasks(self, admin_user: User):
         with pytest.raises(Http404):
@@ -94,3 +95,45 @@ class TestTaskUpdate:
         data_for_update = {"title": "another", "available": False}
         with pytest.raises(exceptions.NotFound):
             services.update_task(user=admin_user, id_=random.randint(1, 100), data=data_for_update)
+
+
+class TestCreateTaskImage:
+    def test_success(self, admin_user: User, tasks: List[models.Task], built_task_image: models.TaskImage):
+        task = random.choice(tasks)
+        data_for_create = {k: v for k, v in model_to_dict(built_task_image).items() if v is not None}
+        data_for_create["task"] = task.id
+        task_image = services.create_task_image(user=admin_user, data=data_for_create)
+        assert task_image
+        assert task_image.id
+        assert task_image.task.id == task.id
+
+    def test_unsuccessful(self, admin_user: User, tasks: List[models.Task], built_task_image: models.TaskImage):
+        task = random.choice(tasks)
+        data_for_create = {k: v for k, v in model_to_dict(built_task_image).items() if v is not None}
+        data_for_create["task"] = task.id
+        data_for_create["title"] = "a" * 300
+        with pytest.raises(exceptions.ValidationError) as exception:
+            services.create_task_image(user=admin_user, data=data_for_create)
+        assert exception.value.status_code == 400
+
+    def test_not_exists_related_id(self, admin_user: User, built_task_image: models.TaskImage):
+        data_for_create = {k: v for k, v in model_to_dict(built_task_image).items() if v is not None}
+        data_for_create["task"] = 20
+        with pytest.raises(exceptions.ValidationError) as exception:
+            services.create_task_image(user=admin_user, data=data_for_create)
+        assert exception.value.status_code == 400
+
+
+class TestRetrieveTaskImage:
+    def test_success(self, task_images: List[models.TaskImage]):
+        task_image = random.choice(task_images)
+        task_image_in_db = services.get_task_image(task_image_id=task_image.id)
+        assert task_image == task_image_in_db
+
+    def test_not_exists(self, task_images: List[models.TaskImage]):
+        with pytest.raises(Http404):
+            services.get_task_image(task_image_id=random.randint(100, 200))
+
+    def test_not_any_exist(self, db):
+        with pytest.raises(Http404):
+            services.get_task_image(task_image_id=1)
