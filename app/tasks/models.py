@@ -29,7 +29,7 @@ class Status(models.Model):
 class TaskImage(Image):
     title = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True)
-    task = models.ForeignKey("Task", on_delete=models.CASCADE)
+    task = models.ForeignKey("Task", on_delete=models.CASCADE, related_name="images")
 
     class Meta:
         verbose_name = "Task Image"
@@ -67,5 +67,4 @@ class TaskCompletion(models.Model):
         verbose_name_plural = "Task Completions"
 
     def __str__(self) -> str:
-
         return f"{self.task.title[:20]} by {self.user.first_name} {self.user.last_name}"
