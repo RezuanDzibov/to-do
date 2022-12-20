@@ -79,3 +79,21 @@ class StatusViewSet(ModelViewSet):
     permission_classes = [IsStaffOrReadOnly]
     http_method_names = ["get", "post", "head", "put", "delete"]
 
+
+class TaskImageCreate(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    @swagger_auto_schema(responses={201: serializers.TaskImageSerializer()})
+    def post(self, request: HttpRequest):
+        data = request.data.copy().dict() | request.FILES.copy().dict()
+        task_image = services.create_task_image(user=request.user, data=data)
+        return Response(data=serializers.TaskImageSerializer(task_image).data, status=status.HTTP_201_CREATED)
+
+
+class TaskImageRetrieve(views.APIView):
+    permission_classes = [permissions.AllowAny]
+
+    @swagger_auto_schema(responses={201: serializers.TaskImageSerializer()})
+    def get(self, request: HttpRequest, pk: int):
+        task_image = services.get_task_image(task_image_id=pk)
+        return Response(data=serializers.TaskImageSerializer(task_image).data, status=status.HTTP_200_OK)
