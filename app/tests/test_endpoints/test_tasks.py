@@ -3,6 +3,7 @@ from typing import List
 
 import pytest
 from django.contrib.auth import get_user_model
+from django.forms import model_to_dict
 from django.urls import reverse
 from rest_framework.test import APIClient
 
@@ -431,3 +432,76 @@ class TestStatusUpdate:
         data_for_update = {"name": "name"}
         response = admin_test_client.put(reverse("status-detail", args=[1]), data_for_update)
         assert response.status_code == 404
+
+
+class TestCreateTaskImage:
+    def test_success(
+            self, admin_test_client: APIClient,
+            task: models.Task,
+            built_task_image: models.TaskImage
+    ):
+        data_for_create = {k: v for k, v in model_to_dict(built_task_image).items() if v is not None}
+        data_for_create["task"] = task.id
+        response = admin_test_client.post(reverse("task_image-create"), data_for_create)
+        response_data = response.data
+        assert response_data
+        assert response_data["id"]
+
+    def test_unsuccessful(self, admin_test_client: APIClient, task: models.Task, built_task_image: models.TaskImage):
+        data_for_create = {k: v for k, v in model_to_dict(built_task_image).items() if v is not None}
+        data_for_create["task"] = task.id
+        data_for_create["title"] = "a" * 300
+        response = admin_test_client.post(reverse("task_image-create"), data_for_create)
+        assert response.status_code == 400
+
+    def test_not_exists_related_id(self, admin_test_client: APIClient, built_task_image: models.TaskImage):
+        data_for_create = {k: v for k, v in model_to_dict(built_task_image).items() if v is not None}
+        data_for_create["task"] = 20
+        response = admin_test_client.post(reverse("task_image-create"), data_for_create)
+        assert response.status_code == 400
+
+    def test_not_task_author(self, user_test_client: APIClient, task: models.Task, built_task_image: models.TaskImage):
+        data_for_create = {k: v for k, v in model_to_dict(built_task_image).items() if v is not None}
+        data_for_create["task"] = task.id
+        response = user_test_client.post(reverse("task_image-create"), data_for_create)
+        assert response.status_code == 403
+
+    def test_not_auth_user(self, test_client: APIClient, task: models.Task, built_task_image: models.TaskImage):
+        data_for_create = {k: v for k, v in model_to_dict(built_task_image).items() if v is not None}
+        data_for_create["task"] = task.id
+        response = test_client.post(reverse("task_image-create"), data_for_create)
+        assert response.status_code == 401
+
+
+class TestRetrieveTaskImage:
+    def test_success(self, admin_test_client: APIClient, task_images: List[models.TaskImage]):
+        task_image = random.choice(task_images)
+        response = admin_test_client.get(reverse("task_image-retrieve", args=[task_image.id]))
+        response_data = response.data
+        task_image_data = model_to_dict(task_image)
+        assert response.status_code == 200
+        assert (task_image_data["id"], task_image_data["title"]) == (response_data["id"], response_data["title"])
+
+    def test_not_exists(self, admin_test_client: APIClient, task_images: List[models.TaskImage]):
+        response = admin_test_client.get(reverse("task_image-retrieve", args=[random.randint(100, 200)]))
+        assert response.status_code == 404
+
+    def test_not_any_exist(self, admin_test_client: APIClient):
+        response = admin_test_client.get(reverse("task_image-retrieve", args=[1]))
+        assert response.status_code == 404
+
+    def test_not_task_author(self, user_test_client: APIClient, task_images: List[models.TaskImage]):
+        task_image = random.choice(task_images)
+        response = user_test_client.get(reverse("task_image-retrieve", args=[task_image.id]))
+        response_data = response.data
+        task_image_data = model_to_dict(task_image)
+        assert response.status_code == 200
+        assert (task_image_data["id"], task_image_data["title"]) == (response_data["id"], response_data["title"])
+
+    def test_not_auth_user(self, test_client: APIClient, task_images: List[models.TaskImage]):
+        task_image = random.choice(task_images)
+        response = test_client.get(reverse("task_image-retrieve", args=[task_image.id]))
+        response_data = response.data
+        task_image_data = model_to_dict(task_image)
+        assert response.status_code == 200
+        assert (task_image_data["id"], task_image_data["title"]) == (response_data["id"], response_data["title"])
