@@ -482,7 +482,7 @@ class TestRetrieveTaskImage:
         assert response.status_code == 200
         assert (task_image_data["id"], task_image_data["title"]) == (response_data["id"], response_data["title"])
 
-    def test_not_exists(self, admin_test_client: APIClient, task_images: List[models.TaskImage]):
+    def test_not_exists(self, admin_test_client: APIClient):
         response = admin_test_client.get(reverse("task_image-retrieve", args=[random.randint(100, 200)]))
         assert response.status_code == 404
 
