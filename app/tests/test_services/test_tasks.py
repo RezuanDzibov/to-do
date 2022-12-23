@@ -137,3 +137,28 @@ class TestRetrieveTaskImage:
     def test_not_any_exist(self, db):
         with pytest.raises(Http404):
             services.get_task_image(task_image_id=1)
+
+
+class TestDeleteTaskImage:
+    def test_success(self, admin_user: User, task_image: models.TaskImage):
+        services.delete_task_image(user=admin_user, task_image_id=task_image.id)
+        with pytest.raises(models.TaskImage.DoesNotExist):
+            models.TaskImage.objects.get(id=task_image.id)
+
+    def test_success_with_multiple_task_images(self, admin_user: User, task_images: List[models.TaskImage]):
+        task_image = random.choice(task_images)
+        services.delete_task_image(user=admin_user, task_image_id=task_image.id)
+        with pytest.raises(models.TaskImage.DoesNotExist):
+            models.TaskImage.objects.get(id=task_image.id)
+
+    def test_with_not_author(self, user_and_its_password: dict, task_image: models.TaskImage):
+        with pytest.raises(exceptions.PermissionDenied):
+            services.delete_task_image(user=user_and_its_password["user"], task_image_id=task_image.id)
+
+    def test_not_exist_task_image(self, admin_user: User, task_images: List[models.TaskImage]):
+        with pytest.raises(exceptions.NotFound):
+            services.delete_task_image(user=admin_user, task_image_id=random.randint(100, 200))
+
+    def test_not_exist_task_without_task_images(self, admin_user: User):
+        with pytest.raises(exceptions.NotFound):
+            services.delete_task_image(user=admin_user, task_image_id=1)
