@@ -161,3 +161,13 @@ def task_images(request: SubRequest, task: models.Task) -> List[models.TaskImage
         task_images = fun(randint(1, 10))
     models.TaskImage.objects.bulk_create(task_images)
     return task_images
+
+
+@pytest.fixture(scope="function")
+def task_image(request: SubRequest,  task: models.Task, built_task_image: models.TaskImage) -> models.TaskImage:
+    if hasattr(request, "param"):
+        for key, value in request.param.items():
+            setattr(built_task_image, key, value)
+    built_task_image.task = task
+    built_task_image.save()
+    return built_task_image
