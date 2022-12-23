@@ -57,3 +57,12 @@ def get_task_image(task_image_id: int) -> models.TaskImage:
     task_image = get_object_or_404(models.TaskImage, id=task_image_id)
     return task_image
 
+
+def delete_task_image(user: models.User, task_image_id) -> None:
+    try:
+        task_image = models.TaskImage.objects.get(id=task_image_id)
+    except models.TaskImage.DoesNotExist:
+        raise exceptions.NotFound()
+    if task_image.task.user.pk != user.id:
+        raise exceptions.PermissionDenied
+    task_image.delete()
