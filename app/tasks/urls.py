@@ -14,7 +14,8 @@ urlpatterns = [
     path("delete/<int:task_id>/", views.TaskDelete.as_view(), name="task-delete"),
     path("update/<int:task_id>/", views.TaskUpdate.as_view(), name="task-update"),
     path("image/create/", views.TaskImageCreate.as_view(), name="task_image-create"),
-    path("image/<int:pk>/", views.TaskImageRetrieve.as_view(), name="task_image-retrieve")
+    path("image/<int:pk>/", views.TaskImageRetrieve.as_view(), name="task_image-retrieve"),
+    path("image/delete/<int:pk>/", views.TaskImageDelete.as_view(), name="task_image-delete")
 ]
 
 urlpatterns += router.urls
