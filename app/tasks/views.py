@@ -3,7 +3,7 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework import views, status, permissions, generics
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.request import HttpRequest, Request
+from rest_framework.request import HttpRequest
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
@@ -97,3 +97,11 @@ class TaskImageRetrieve(views.APIView):
     def get(self, request: HttpRequest, pk: int):
         task_image = services.get_task_image(task_image_id=pk)
         return Response(data=serializers.TaskImageSerializer(task_image).data, status=status.HTTP_200_OK)
+
+
+class TaskImageDelete(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def delete(self, request: HttpRequest, pk: int):
+        services.delete_task_image(task_image_id=pk, user=request.user)
+        return Response(status=204)
