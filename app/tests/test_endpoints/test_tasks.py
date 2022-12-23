@@ -505,3 +505,34 @@ class TestRetrieveTaskImage:
         task_image_data = model_to_dict(task_image)
         assert response.status_code == 200
         assert (task_image_data["id"], task_image_data["title"]) == (response_data["id"], response_data["title"])
+
+
+class TestDeleteTaskImage:
+    def test_success(self, admin_test_client, task_image: models.TaskImage):
+        response = admin_test_client.delete(reverse("task_image-delete", args=[task_image.id]))
+        assert response.status_code == 204
+        with pytest.raises(models.TaskImage.DoesNotExist):
+            models.TaskImage.objects.get(id=task_image.id)
+
+    def test_success_with_multiple_task_images(self, admin_test_client, task_images: List[models.TaskImage]):
+        task_image = random.choice(task_images)
+        response = admin_test_client.delete(reverse("task_image-delete", args=[task_image.id]))
+        assert response.status_code == 204
+        with pytest.raises(models.TaskImage.DoesNotExist):
+            models.TaskImage.objects.get(id=task_image.id)
+
+    def test_with_not_author(self, user_test_client: APIClient, task_image: models.TaskImage):
+        response = user_test_client.delete(reverse("task_image-delete", args=[task_image.id]))
+        assert response.status_code == 403
+
+    def test_not_exist_task_image(self, admin_test_client, task_images: List[models.TaskImage]):
+        response = admin_test_client.delete(reverse("task_image-delete", args=[100]))
+        assert response.status_code == 404
+
+    def test_not_exist_task_image_without_task_images(self, admin_test_client):
+        response = admin_test_client.delete(reverse("task_image-delete", args=[1]))
+        assert response.status_code == 404
+
+    def test_without_user(self, test_client: APIClient, task_images: List[models.TaskImage]):
+        response = test_client.delete(reverse("task_image-delete", args=[random.choice(task_images).id]))
+        assert response.status_code == 401
